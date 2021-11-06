@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TrigVisualizer"
         mc:Ignorable="d"
         Title="Trig Viz" Height="495" Width="800">
-    <Canvas>
+    <Canvas x:Name="cvsMain">
         <Viewbox Width="400" Canvas.Left="190" Canvas.Top="58">
             <Canvas Width="3848" Height="3849">
                 <Canvas Opacity="0.296875">
@@ -51,6 +51,7 @@
             </Canvas>
         </Viewbox>
         <TextBlock x:Name="tbStatus" Text="" Width="Auto" Height="Auto" FontSize="20" Margin="15, 5, 0, 0"/>
+        
         <Button x:Name="btnClearAll" Padding="15,8,15,8" FontSize="25" Canvas.Left="198" Canvas.Top="389" Click="btnClearAll_Click">
             Clear All
         </Button>

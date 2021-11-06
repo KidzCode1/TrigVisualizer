@@ -23,6 +23,50 @@ namespace TrigVisualizer
 		public MainWindow()
 		{
 			InitializeComponent();
+			DrawSinFunction();
+			DrawCosFunction();
+			DrawSinPlusCosFunction();
+		}
+
+		void AddDot(double x, double y, Color color)
+		{
+			Ellipse ellipse = new Ellipse();
+			ellipse.Width = 5;
+			ellipse.Height = 5;
+			ellipse.Fill = new SolidColorBrush(color);
+			Canvas.SetLeft(ellipse, x + 800);
+			Canvas.SetTop(ellipse, y);
+			cvsMain.Children.Add(ellipse);
+		}
+
+		void DrawSinFunction()
+		{
+			for (double x = 0.1; x < 90; x += 0.1)  // 0.1 to 89.9
+			{
+				double y = 200 + 400 * (1 - Sin(x));  // Expected to be between 0 and 1
+				double multiplier = 400 / 90;
+				AddDot(x * multiplier, y, Colors.Red);
+			}
+		}
+
+		void DrawCosFunction()
+		{
+			for (double x = 0.1; x < 90; x += 0.1)  // 0.1 to 89.9
+			{
+				double y = 200 + 400 * (1 - Cos(x));  // Expected to be between 0 and 1
+				double multiplier = 400 / 90;
+				AddDot(x * multiplier, y, Colors.Blue);
+			}
+		}
+
+		void DrawSinPlusCosFunction()
+		{
+			for (double x = 0.1; x < 90; x += 0.1)  // 0.1 to 89.9
+			{
+				double y = -200 + 400 * (2 - (Cos(x) + Sin(x)));  // Expected to be between 0 and 1
+				double multiplier = 400 / 90;
+				AddDot(x * multiplier, y, Colors.Purple);
+			}
 		}
 
 		bool changingManually;
@@ -103,19 +147,43 @@ namespace TrigVisualizer
 			return Math.Sin(ToRadians(degrees));
 		}
 
-		double GetOppositeFromThetaAndAdjacent(double theta, double adjacent)
+		double GetOppositeFromThetaAndAdjacent(double thetaDegrees, double adjacent)
 		{
 			// TOA
 			// adjacent * Tangent of theta = opposite.
-			return adjacent * Tan(theta);
+			return adjacent * Tan(thetaDegrees);
 		}
 
-		double GetHypotenuseFromThetaAndAdjacent(double theta, double adjacent)
+		double GetOppositeFromThetaAndHypotenuse(double thetaDegrees, double hypotenuse)
+		{
+			// SOH Sine(theta) = Opposite over Hypotenuse
+			// Opposite = Sine(theta) * Hypotenuse
+			return Sin(thetaDegrees) * hypotenuse;
+		}
+
+		double GetAdjacentFromThetaAndHypotenuse(double thetaDegrees, double hypotenuse)
+		{
+			// CAH Cosine(theta) = Adjacent over Hypotenuse
+			// Adjacent = Cosine(theta) * Hypotenuse
+			return Cos(thetaDegrees) * hypotenuse;
+		}
+
+		double GetHypotenuseFromThetaAndAdjacent(double thetaDegrees, double adjacent)
 		{
 			// hypotenuse = adjacent / cos of theta 
-			return adjacent / Cos(theta);
+			return adjacent / Cos(thetaDegrees);
 		}
 
+		/// <summary>
+		/// Gets the hypotenuse from the theta and the opposite.
+		/// </summary>
+		/// <param name="thetaDegrees">The angle of theta, in degrees.</param>
+		/// <param name="opposite">The length of the opposite side (across from theta)</param>
+		double GetHypotenuseFromThetaAndOpposite(double thetaDegrees, double opposite)
+		{
+			// hypotenuse = opposite / sin of theta 
+			return opposite / Sin(thetaDegrees);
+		}
 		double GetThetaFromOppositeAndAdjacent(double opposite, double adjacent)
 		{
 			// TOA 
@@ -125,6 +193,25 @@ namespace TrigVisualizer
 			double thetaRadians = Math.Atan2(opposite, adjacent);
 			return ToDegrees(thetaRadians);
 
+		}
+
+		double GetThetaFromOppositeAndHypotenuse(double opposite, double hypotenuse)
+		{
+			// SOH Sine(theta) = Opposite over Hypotenuse
+			// ArcSin(opposite/hypotenuse) = theta
+
+			double thetaRadians = Math.Asin(opposite / hypotenuse);
+			return ToDegrees(thetaRadians);
+
+		}
+
+		double GetThetaFromAdjacentAndHypotenuse(double adjacent, double hypotenuse)
+		{
+			// CAH Cosine(theta) = Adjacent over Hypotenuse
+			// ArcCosine(adjacent/hypotenuse) = theta
+
+			double thetaRadians = Math.Acos(adjacent / hypotenuse);
+			return ToDegrees(thetaRadians);
 		}
 
 		private void btnSolve_Click(object sender, RoutedEventArgs e)
@@ -155,6 +242,21 @@ namespace TrigVisualizer
 
 			}
 
+
+			if (HasValue(opposite))
+			{
+				if (HasValue(theta))
+				{
+					hypotenuse = GetHypotenuseFromThetaAndOpposite(theta, opposite);
+					adjacent = GetAdjacentFromThetaAndHypotenuse(theta, hypotenuse);
+
+					tbxAdjacent.Text = adjacent.ToString();
+					tbxHypotenuse.Text = hypotenuse.ToString();
+					return;
+				}
+			}
+
+
 			if (HasValue(hypotenuse))
 			{
 				if (HasValue(opposite))
@@ -162,11 +264,42 @@ namespace TrigVisualizer
 					if (opposite >= hypotenuse)
 					{
 						tbStatus.Text = "Hypotenuse must be the longest side";
+						return;
 					}
+					theta = GetThetaFromOppositeAndHypotenuse(opposite, hypotenuse);
+					adjacent = GetAdjacentFromThetaAndHypotenuse(theta, hypotenuse);
+
+					tbxAdjacent.Text = adjacent.ToString();
+					tbxTheta.Text = theta.ToString();
+					return;
 				}
 				else if (HasValue(adjacent))
 				{
-					
+					if (adjacent >= hypotenuse)
+					{
+						tbStatus.Text = "Hypotenuse must be the longest side";
+						return;
+					}
+					theta = GetThetaFromAdjacentAndHypotenuse(adjacent, hypotenuse);
+					opposite = GetOppositeFromThetaAndAdjacent(theta, adjacent);
+
+					tbxOpposite.Text = opposite.ToString();
+					tbxTheta.Text = theta.ToString();
+					return;
+				}
+				else if (HasValue(theta))
+				{
+					if (theta >= 90 || theta <= 0)
+					{
+						tbStatus.Text = "Theta must be between 0 and 90 degrees.";
+						return;
+					}
+					adjacent = GetAdjacentFromThetaAndHypotenuse(theta, hypotenuse);
+					opposite = GetOppositeFromThetaAndHypotenuse(theta, hypotenuse);
+
+					tbxOpposite.Text = opposite.ToString();
+					tbxAdjacent.Text = adjacent.ToString();
+					return;
 				}
 			}
 		}
