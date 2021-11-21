@@ -20,6 +20,7 @@ namespace TrigVisualizer
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		const double DBL_GraphLeft = 800;
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -31,11 +32,13 @@ namespace TrigVisualizer
 		void AddDot(double x, double y, Color color)
 		{
 			Ellipse ellipse = new Ellipse();
-			ellipse.Width = 5;
-			ellipse.Height = 5;
+			const double diameter = 5;
+			const double radius = diameter / 2.0;
+			ellipse.Width = diameter;
+			ellipse.Height = diameter;
 			ellipse.Fill = new SolidColorBrush(color);
-			Canvas.SetLeft(ellipse, x + 800);
-			Canvas.SetTop(ellipse, y);
+			Canvas.SetLeft(ellipse, x + DBL_GraphLeft - radius);
+			Canvas.SetTop(ellipse, y - radius);
 			cvsMain.Children.Add(ellipse);
 		}
 
@@ -67,6 +70,20 @@ namespace TrigVisualizer
 				double multiplier = 400 / 90;
 				AddDot(x * multiplier, y, Colors.Purple);
 			}
+		}
+
+		void DrawTheta()
+		{
+			Line line = new Line();
+			double multiplier = 400 / 90;
+			double xOffset = Canvas.GetLeft(brdPreview);
+			line.X1 = DBL_GraphLeft + theta * multiplier - xOffset;
+			line.X2 = DBL_GraphLeft + theta * multiplier - xOffset;
+			line.Y1 = 0;
+			line.Y2 = 800;  // I know magic numbers stink, but time is shortening.
+			
+			line.Stroke = new SolidColorBrush(Colors.Black);
+			cvsPreview.Children.Add(line);
 		}
 
 		bool changingManually;
@@ -156,9 +173,10 @@ namespace TrigVisualizer
 
 		double GetOppositeFromThetaAndHypotenuse(double thetaDegrees, double hypotenuse)
 		{
+			// Opposite = Sine(theta) * Hypotenuse			
 			// SOH Sine(theta) = Opposite over Hypotenuse
-			// Opposite = Sine(theta) * Hypotenuse
 			return Sin(thetaDegrees) * hypotenuse;
+
 		}
 
 		double GetAdjacentFromThetaAndHypotenuse(double thetaDegrees, double hypotenuse)
@@ -214,8 +232,56 @@ namespace TrigVisualizer
 			return ToDegrees(thetaRadians);
 		}
 
+		void DrawPreviewTriangle()
+		{
+			//brdPreview.ActualHeight;
+			const double margin = 10;
+			double scaleFactorHorizontal = (brdPreview.ActualWidth - 2 * margin) / adjacent;
+			double scaleFactorVertical = (brdPreview.ActualHeight - 2 * margin) / opposite;
+
+			double scaleFactorToUse = Math.Min(scaleFactorHorizontal, scaleFactorVertical);
+			Point bottomLeft = new Point(margin + 0, margin + opposite * scaleFactorToUse);
+			Point bottomRight = new Point(margin + adjacent * scaleFactorToUse, margin + opposite * scaleFactorToUse);
+			Point topRight = new Point(margin + adjacent * scaleFactorToUse, margin);
+
+			Polygon triangle = new Polygon();
+			triangle.Points.Add(bottomLeft);
+			triangle.Points.Add(bottomRight);
+			triangle.Points.Add(topRight);
+			triangle.FillRule = FillRule.Nonzero;
+			triangle.Fill = new SolidColorBrush(Color.FromArgb(93, 46, 133, 255));
+
+
+			cvsPreview.Children.Clear();
+			cvsPreview.Children.Add(triangle);
+			AddPoint(bottomLeft);
+			AddPoint(bottomRight);
+			AddPoint(topRight);
+
+			DrawTheta();
+		}
+
+		private void AddPoint(Point point)
+		{
+			Ellipse ellipse = new Ellipse();
+			const double diameter = 5;
+			const double radius = diameter / 2.0;
+			ellipse.Width = diameter;
+			ellipse.Height = diameter;
+			ellipse.Fill = new SolidColorBrush(Colors.Red);
+			Canvas.SetLeft(ellipse, point.X - radius);
+			Canvas.SetTop(ellipse, point.Y - radius);
+			cvsPreview.Children.Add(ellipse);
+		}
+
 		private void btnSolve_Click(object sender, RoutedEventArgs e)
 		{
+			Solve();
+		}
+
+		private void Solve()
+		{
+			tbDiscovery.Visibility = Visibility.Hidden;
 			GetKnownValues();
 			if (HasValue(adjacent))
 			{
@@ -226,6 +292,7 @@ namespace TrigVisualizer
 
 					tbxOpposite.Text = opposite.ToString();
 					tbxHypotenuse.Text = hypotenuse.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 
@@ -235,8 +302,9 @@ namespace TrigVisualizer
 					theta = GetThetaFromOppositeAndAdjacent(opposite, adjacent);
 					hypotenuse = GetHypotenuseFromThetaAndAdjacent(theta, adjacent);
 
-					tbxHypotenuse.Text = hypotenuse.ToString(); 
+					tbxHypotenuse.Text = hypotenuse.ToString();
 					tbxTheta.Text = theta.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 
@@ -252,6 +320,7 @@ namespace TrigVisualizer
 
 					tbxAdjacent.Text = adjacent.ToString();
 					tbxHypotenuse.Text = hypotenuse.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 			}
@@ -271,6 +340,7 @@ namespace TrigVisualizer
 
 					tbxAdjacent.Text = adjacent.ToString();
 					tbxTheta.Text = theta.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 				else if (HasValue(adjacent))
@@ -285,6 +355,7 @@ namespace TrigVisualizer
 
 					tbxOpposite.Text = opposite.ToString();
 					tbxTheta.Text = theta.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 				else if (HasValue(theta))
@@ -299,9 +370,11 @@ namespace TrigVisualizer
 
 					tbxOpposite.Text = opposite.ToString();
 					tbxAdjacent.Text = adjacent.ToString();
+					DrawPreviewTriangle();
 					return;
 				}
 			}
+			tbDiscovery.Visibility = Visibility.Visible;
 		}
 
 		private void btnClearAll_Click(object sender, RoutedEventArgs e)
@@ -310,6 +383,14 @@ namespace TrigVisualizer
 			tbxOpposite.Text = "";
 			tbxHypotenuse.Text = "";
 			tbxTheta.Text = "";
+		}
+
+		private void sldTheta_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+		{
+			if (tbxTheta == null || sldTheta == null)
+				return;
+			tbxTheta.Text = sldTheta.Value.ToString();
+			Solve();
 		}
 	}
 }

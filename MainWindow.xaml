@@ -7,6 +7,12 @@
         mc:Ignorable="d"
         Title="Trig Viz" Height="495" Width="800">
     <Canvas x:Name="cvsMain">
+        <Border x:Name="brdPreview" Canvas.Left="10" Width="260" Height="190" BorderBrush="LightGray" BorderThickness="1">
+            <Canvas x:Name="cvsPreview">
+                <TextBlock x:Name="tbDiscovery" TextAlignment="Center" Canvas.Top="77" Width="260" Height="Auto" Text="Enter two values and click Solve."/>
+            </Canvas>
+        </Border>
+        <Slider x:Name="sldTheta" Minimum="0.0001" Maximum="89.9999" Canvas.Left="15" Canvas.Top="190" Width="250" ValueChanged="sldTheta_ValueChanged" />
         <Viewbox Width="400" Canvas.Left="190" Canvas.Top="58">
             <Canvas Width="3848" Height="3849">
                 <Canvas Opacity="0.296875">
@@ -51,7 +57,7 @@
             </Canvas>
         </Viewbox>
         <TextBlock x:Name="tbStatus" Text="" Width="Auto" Height="Auto" FontSize="20" Margin="15, 5, 0, 0"/>
-        
+
         <Button x:Name="btnClearAll" Padding="15,8,15,8" FontSize="25" Canvas.Left="198" Canvas.Top="389" Click="btnClearAll_Click">
             Clear All
         </Button>
@@ -59,13 +65,13 @@
             Solve
         </Button>
         <TextBox x:Name="tbxOpposite" Width="100" Canvas.Left="514" Canvas.Top="231" FontSize="25" TextChanged="tbxOpposite_TextChanged">
-            0
+            
         </TextBox>
         <TextBox x:Name="tbxAdjacent" Width="100" Canvas.Left="333" Canvas.Top="319" FontSize="25" TextChanged="tbxAdjacent_TextChanged">
-            0
+            
         </TextBox>
         <TextBox x:Name="tbxTheta" Width="100" Background="Transparent" Canvas.Left="260" Canvas.Top="262" FontSize="25" TextChanged="tbxTheta_TextChanged">
-            0
+            
         </TextBox>
         <TextBox x:Name="tbxHypotenuse" Width="100" Canvas.Left="288" Canvas.Top="157" FontSize="25" RenderTransformOrigin="0.5,0.5" TextChanged="tbxHypotenuse_TextChanged">
             <TextBox.RenderTransform>
@@ -76,7 +82,7 @@
                     <TranslateTransform/>
                 </TransformGroup>
             </TextBox.RenderTransform>
-            0
+            
         </TextBox>
     </Canvas>
 </Window>
